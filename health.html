@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Public Health Registry</title>
+    <script>
+    // Redirect to login.html if not logged in
+    if (!localStorage.getItem('health_logged_in')) {
+        window.location.href = 'login.html';
+    }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Health-Tech -->
+    <!-- Application Structure Plan: The SPA is structured as a narrative journey, starting with the 'Why' (the problem), moving to the 'What' (the solution and its features), then the 'How' (the technology), and finally the 'For Whom' (stakeholder value). This top-down approach is more intuitive for users than a slide-by-slide format. It allows them to grasp the core concept first and then dive into details. Key interactions include a dynamic chart comparing the old vs. new system, interactive cards for features, and a content switcher for stakeholder benefits, making data exploration active rather than passive. A sticky navigation bar facilitates easy movement between these logical sections. -->
+    <!-- Visualization & Content Choices: 
+        - Problem (Scattered Systems vs. Unified): Goal: Compare. Viz: Interactive Bar Chart (Chart.js). Interaction: Buttons toggle between 'Current' and 'Proposed' data views to visually dramatize the improvement in efficiency and accuracy. Justification: A static list of problems is less impactful than a direct visual comparison of the before-and-after states.
+        - Core Platform (Architecture): Goal: Organize. Viz: Diagram using HTML/CSS (Flexbox). Interaction: Hover/click on components to reveal descriptive text. Justification: An interactive diagram is more engaging for explaining technical architecture than a static list.
+        - Stakeholder Value: Goal: Inform. Viz: Dynamic Content Display. Interaction: Clicking stakeholder buttons updates a central text area. Justification: This allows users to self-select the information most relevant to them, improving engagement and clarity.
+        - All other textual content is presented in clean, scannable cards or lists to enhance readability.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f7f4;
+            color: #333;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s;
+        }
+        .nav-link:hover {
+            color: #2563eb;
+        }
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        .btn-secondary.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-blue-600">Digital Public Health Registry</h1>
+            <div class="hidden md:flex space-x-8">
+                <a href="#problem" class="nav-link text-gray-600 font-medium">The Problem</a>
+                <a href="#solution" class="nav-link text-gray-600 font-medium">Reqirement</a>
+                <a href="#features" class="nav-link text-gray-600 font-medium">Features</a>
+                <a href="#stakeholders" class="nav-link text-gray-600 font-medium"></a>
+                <a href="#roadmap" class="nav-link text-gray-600 font-medium">personal details</a>
+            </div>
+            <div class="md:hidden">
+                <button id="menu-btn" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+            <a href="#problem" class="block py-2 nav-link text-gray-600 font-medium">The Problem</a>
+            <a href="#solution" class="block py-2 nav-link text-gray-600 font-medium">The Solution</a>
+            <a href="#features" class="block py-2 nav-link text-gray-600 font-medium">Features</a>
+            <a href="#stakeholders" class="block py-2 nav-link text-gray-600 font-medium">Stakeholders</a>
+            <a href="#roadmap" class="block py-2 nav-link text-gray-600 font-medium">Roadmap</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+
+        <section class="text-center mb-24">
+            <h2 class="text-4xl md:text-6xl font-bold tracking-tight mb-4">Building India's Health Data Backbone</h2>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">A unified, real-time data registry for a healthier, more responsive nation.</p>
+        </section>
+
+    <section id="problem" class="mb-24" style="position:relative;">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold mb-2">The Challenge: A Fragmented System</h3>
+                <p class="text-gray-600 max-w-2xl mx-auto">Our current health data is broken—trapped in silos, slow to move, and often inaccurate. This delays critical responses and erodes public trust.</p>
+            </div>
+                <div class="text-center mb-12">
+                    <h3 class="text-3xl font-bold mb-2">The Challenge: A Fragmented System</h3>
+                    <p class="text-gray-600 max-w-2xl mx-auto">Our current health data is broken—trapped in silos, slow to move, and often inaccurate. This delays critical responses and erodes public trust.</p>
+                </div>
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-4">
+                    <div class="card">
+                        <h4 class="font-bold text-lg mb-2">🚨 Scattered Systems</h4>
+                        <p>Health data aaj bhi alag-alag silos mein hai — state portals, paper registers, Excel files.</p>
+                    </div>
+    <button id="problem-search-btn" onclick="window.location.href='problem-search.html';" style="display:inline-flex; position:absolute; left:50%; transform:translateX(-50%); top:100px; background:#22c55e; color:#fff; border:none; border-radius:0.5rem; padding:0.5rem 1.2rem; font-size:1rem; font-weight:bold; cursor:pointer; align-items:center; gap:0.5rem; z-index:10;">
+            <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' viewBox='0 0 24 24' style='vertical-align:middle;'><circle cx='12' cy='12' r='10' stroke='#fff' stroke-width='2' fill='#16a34a'/><path d='M15.5 15.5L19 19' stroke='#fff' stroke-width='2' stroke-linecap='round'/><circle cx='11' cy='11' r='4' stroke='#fff' stroke-width='2'/></svg>
+            Search Your Health Problem
+        </button>
+                     <div class="card">
+                        <h4 class="font-bold text-lg mb-2">🚨 Slow Data Flow</h4>
+                        <p>Case updates block level se state HQ tak report hone mein din lag jaate hain.</p>
+                    </div>
+                    <div class="card">
+                        <h4 class="font-bold text-lg mb-2">🚨 No Single Source of Truth</h4>
+                        <p>COVID ke time har state ka alag dashboard tha, par ek national real-time registry nahi tha.</p>
+                    </div>
+                </div>
+                <div class="card p-4 md:p-6">
+                    <h4 class="text-xl font-semibold text-center mb-4">System Efficiency Comparison</h4>
+                    <div class="chart-container">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                    <div class="flex justify-center mt-6 space-x-4">
+                        <button id="currentSystemBtn" class="btn btn-secondary active">Current System</button>
+                        <button id="proposedSystemBtn" class="btn btn-secondary">Proposed Registry</button>
+                    </div>
+                    <p class="text-center mt-4 text-sm text-gray-500">Click the buttons to see the projected impact of the new registry on data reporting time and accuracy.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="solution" class="mb-24 bg-white py-16 rounded-xl">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold mb-2">The Solution: A Unified Digital Registry</h3>
+                <p class="text-gray-600 max-w-3xl mx-auto">Our vision is a decentralized, real-time Digital Health Registry, creating a single data backbone that connects everyone from local health workers to national authorities.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div class="flex flex-col items-center">
+                    <div class="bg-red-100 text-red-600 rounded-full h-20 w-20 flex items-center justify-center mb-4 text-3xl">
+                        <!-- Blood donation SVG icon -->
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M24 6C24 6 12 20.25 12 28C12 36.2843 19.7157 44 28 44C36.2843 44 44 36.2843 44 28C44 20.25 32 6 32 6H24Z" fill="#ef4444" stroke="#dc2626" stroke-width="2"/>
+                          <ellipse cx="28" cy="32" rx="6" ry="4" fill="#fff" fill-opacity="0.7"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2">Blood Donation</h4>
+                    <p class="text-gray-600 px-4">Support and manage blood donation drives, connect donors and recipients, and ensure safe, timely blood availability.</p>
+                </div>
+                <div class="flex flex-col items-center" id="medicine-req-card" style="cursor:pointer;">
+                    <div class="bg-pink-100 text-pink-600 rounded-full h-20 w-20 flex items-center justify-center mb-4 text-3xl">💊</div>
+                    <h4 class="font-bold text-lg mb-2">Medicine</h4>
+                    <p class="text-gray-600 px-4">Click to search for medicines on Flipkart or Amazon.</p>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="bg-green-100 text-green-600 rounded-full h-20 w-20 flex items-center justify-center mb-4 text-3xl">🔌</div>
+                    <h4 class="font-bold text-lg mb-2">Hospital</h4>
+                    <p class="text-gray-600 px-4">Seamlessly pulls data from existing hospital HIS/LIS systems, eliminating manual reporting and errors.</p>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="bg-purple-100 text-purple-600 rounded-full h-20 w-20 flex items-center justify-center mb-4 text-3xl">🌐</div>
+                    <h4 class="font-bold text-lg mb-2">FHIR-Based Data Models</h4>
+                    <p class="text-gray-600 px-4">Uses global standards for interoperability, ensuring all systems speak the same language.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="mb-24">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold mb-2">Key Features for a Smarter System</h3>
+                <p class="text-gray-600">This registry is more than just data storage; it's an active tool for public health management.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="card">
+                    <h4 class="font-bold text-lg mb-2">🛏 Real-Time Bed & Facility Registry</h4>
+                    <p>Granular, live status of every bed in every ward (vacant/occupied/reserved).</p>
+                </div>
+                <div class="card" id="medicine-card" style="cursor:pointer;">
+                    <h4 class="font-bold text-lg mb-2">💊 Medicine</h4>
+                    <p>Click to search for medicines</p>
+                </div>
+                <div class="card">
+                    <h4 class="font-bold text-lg mb-2">📈 Unified Case & Vaccination Tracker</h4>
+                    <p>Each case linked to a unique patient ID (ABHA/Aadhaar) for a complete health profile.</p>
+                </div>
+                <div class="card">
+                    <h4 class="font-bold text-lg mb-2">🗺 Predictive Outbreak Dashboard</h4>
+                    <p>Real-time heatmaps and automated alerts for block/district level officials.</p>
+                </div>
+                <div class="card">
+                    <h4 class="font-bold text-lg mb-2"> citizen_view Citizen View Portal</h4>
+                    <p>Public app/USSD/SMS to find nearest facility with beds, oxygen, vaccine or emergency blood requirement system</p>
+                </div>
+                <div class="card">
+                    <h4 class="font-bold text-lg mb-2">🔒 Patient Consent Layer</h4>
+                    <p>Aligned with ABDM, patients control who can access their personal health information.</p>
+                </div>
+                 <div class="card">
+                    <h4 class="font-bold text-lg mb-2">🤖 AI-Powered Analytics</h4>
+                    <p>Forecasts demand for beds and medicines, enabling proactive resource management.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="stakeholders" class="mb-24">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold mb-2">A Win-Win for Everyone</h3>
+                <p class="text-gray-600">Select a stakeholder to see how the registry empowers them.</p>
+            </div>
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button class="stakeholder-btn btn btn-secondary active" data-stakeholder="patients">Patients</button>
+                <button class="stakeholder-btn btn btn-secondary" data-stakeholder="hospitals">Hospitals</button>
+                <button class="stakeholder-btn btn btn-secondary" data-stakeholder="government">Government</button>
+                <button class="stakeholder-btn btn btn-secondary" data-stakeholder="researchers">Researchers</button>
+            </div>
+            <div class="card max-w-3xl mx-auto p-8 min-h-[200px]">
+                <div id="stakeholder-content" class="text-center">
+                </div>
+            </div>
+        </section>
+
+        <section id="roadmap" class="mb-24">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold mb-2">Personal Portfolio</h3>
+                <p class="text-gray-600">Welcome to your health portfolio. Here are your details and achievements.</p>
+            </div>
+            <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
+                <div class="mb-6">
+                    <span class="block text-lg font-semibold text-gray-700">Health ID:</span>
+                    <span id="portfolio-health-id" class="text-2xl font-bold text-green-600"></span>
+                </div>
+                <img src="subham.jpg" alt="Profile Photo" class="w-32 h-32 rounded-full shadow mb-4 object-cover border-4 border-green-200">
+                <h2 class="text-2xl font-bold mb-2">Your Name</h2>
+                <h3 class="text-lg text-gray-500 mb-4">Health Enthusiast | Blood Donor | Community Member</h3>
+                <div class="mb-6 text-center">
+                    <p class="text-gray-700 mb-2">This is your personal health portfolio. You can add your health achievements, blood donation history, vaccination records, and more.</p>
+                    <p class="text-gray-500 text-sm">(You can customize this section with your own information.)</p>
+                </div>
+                <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-green-50 rounded-lg p-4 shadow">
+                        <h4 class="font-bold text-green-700 mb-2">Blood Donation</h4>
+                        <ul class="list-disc list-inside text-gray-700">
+                            <li>Last donated: March 2025</li>
+                            <li>Total donations: 5</li>
+                            <li>Blood group: O+</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 rounded-lg p-4 shadow">
+                        <h4 class="font-bold text-blue-700 mb-2">Vaccination</h4>
+                        <ul class="list-disc list-inside text-gray-700">
+                            <li>COVID-19: 2 doses</li>
+                            <li>Hepatitis B: Completed</li>
+                        </ul>
+                    </div>
+                    <div class="bg-yellow-50 rounded-lg p-4 shadow">
+                        <h4 class="font-bold text-yellow-700 mb-2">Achievements</h4>
+                        <ul class="list-disc list-inside text-gray-700">
+                            <li>Community Health Volunteer</li>
+                            <li>Organized 3 blood camps</li>
+                        </ul>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4 shadow">
+                        <h4 class="font-bold text-purple-700 mb-2">Contact</h4>
+                        <ul class="list-disc list-inside text-gray-700">
+                            <li>Email: your.email@example.com</li>
+                            <li>Phone: +91-XXXXXXXXXX</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <script>
+                // Show the health id from localStorage
+                document.addEventListener('DOMContentLoaded', function() {
+                    var healthId = localStorage.getItem('health_id');
+                    if (healthId) {
+                        document.getElementById('portfolio-health-id').textContent = healthId;
+                    }
+                });
+            </script>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2024 Digital Public Health Registry Initiative. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Medicine card in Reqirement section click handler
+            var medReqCard = document.getElementById('medicine-req-card');
+            if(medReqCard) {
+                medReqCard.addEventListener('click', function() {
+                    var med = prompt('Enter the medicine name to search:');
+                    if(med && med.trim().length > 0) {
+                        var url = 'https://www.flipkart.com/search?q=' + encodeURIComponent(med.trim());
+                        window.open(url, '_blank');
+                    }
+                });
+            }
+            // Medicine card click handler
+            var medCard = document.getElementById('medicine-card');
+            if(medCard) {
+                medCard.addEventListener('click', function() {
+                    var med = prompt('Enter the medicine name to search:');
+                    if(med && med.trim().length > 0) {
+                        var url = 'https://www.flipkart.com/search?q=' + encodeURIComponent(med.trim());
+                        window.open(url, '_blank');
+                    }
+                });
+            }
+            // Show the search button only when the problem section is clicked
+            var problemSection = document.getElementById('problem');
+            var searchBtn = document.getElementById('problem-search-btn');
+            if(problemSection && searchBtn) {
+                problemSection.addEventListener('click', function(e) {
+                    // Only show if not already visible and not clicking the button itself
+                    if (e.target !== searchBtn && searchBtn.style.display === 'none') {
+                        searchBtn.style.display = 'inline-flex';
+                    }
+                });
+            }
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const chartData = {
+                current: {
+                    labels: ['Data Reporting Time (Days)', 'Data Accuracy (%)'],
+                    data: [3, 45],
+                    backgroundColor: 'rgba(239, 68, 68, 0.6)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                },
+                proposed: {
+                    labels: ['Data Reporting Time (Minutes)', 'Data Accuracy (%)'],
+                    data: [5, 98],
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                }
+            };
+
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            let myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.current.labels,
+                    datasets: [{
+                        label: 'System Performance',
+                        data: chartData.current.data,
+                        backgroundColor: chartData.current.backgroundColor,
+                        borderColor: chartData.current.borderColor,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            function updateChart(system) {
+                const { labels, data, backgroundColor, borderColor } = chartData[system];
+                myChart.data.labels = labels;
+                myChart.data.datasets[0].data = data;
+                myChart.data.datasets[0].backgroundColor = backgroundColor;
+                myChart.data.datasets[0].borderColor = borderColor;
+                myChart.update();
+            }
+
+            const currentSystemBtn = document.getElementById('currentSystemBtn');
+            const proposedSystemBtn = document.getElementById('proposedSystemBtn');
+
+            currentSystemBtn.addEventListener('click', () => {
+                updateChart('current');
+                currentSystemBtn.classList.add('active');
+                proposedSystemBtn.classList.remove('active');
+            });
+
+            proposedSystemBtn.addEventListener('click', () => {
+                updateChart('proposed');
+                proposedSystemBtn.classList.add('active');
+                currentSystemBtn.classList.remove('active');
+            });
+
+            const stakeholderData = {
+                patients: {
+                    icon: '😊',
+                    title: 'Empowering Patients',
+                    text: 'Access to real-time, trustworthy information about beds, vaccines, and doctors, ensuring transparency and timely care.'
+                },
+                hospitals: {
+                    icon: '🏥',
+                    title: 'Streamlining for Hospitals',
+                    text: 'A drastic reduction in manual reporting, allowing for single-click compliance with government mandates and freeing up staff time.'
+                },
+                government: {
+                    icon: '🏛',
+                    title: 'Informing Government & Public Health',
+                    text: 'Enables a faster, data-driven epidemic response with an authentic, single source of truth for planning and resource allocation.'
+                },
+                researchers: {
+                    icon: '🔬',
+                    title: 'Advancing Research',
+                    text: 'Access to high-quality, anonymized data to drive innovation, research, and future health policy planning.'
+                }
+            };
+
+            const stakeholderBtns = document.querySelectorAll('.stakeholder-btn');
+            const stakeholderContent = document.getElementById('stakeholder-content');
+
+            function updateStakeholderContent(stakeholder) {
+                const data = stakeholderData[stakeholder];
+                stakeholderContent.innerHTML = `
+                    <div class="text-5xl mb-4">${data.icon}</div>
+                    <h4 class="text-2xl font-bold mb-2">${data.title}</h4>
+                    <p class="text-gray-600 text-lg">${data.text}</p>
+                `;
+            }
+
+            stakeholderBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    stakeholderBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const stakeholder = btn.dataset.stakeholder;
+                    updateStakeholderContent(stakeholder);
+                });
+            });
+
+            updateStakeholderContent('patients');
+        });
+    </script>
+</body>
+</html>
